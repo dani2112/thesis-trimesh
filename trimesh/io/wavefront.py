@@ -3,7 +3,7 @@ import numpy as np
 from .. import util
 
 
-def load_wavefront(file_obj, **kwargs):
+def load_wavefront(file_obj, load_vertex_texture=False, **kwargs):
     """
     Loads an ascii Wavefront OBJ file_obj into kwargs
     for the Trimesh constructor.
@@ -29,7 +29,6 @@ def load_wavefront(file_obj, **kwargs):
     if hasattr(text, 'decode'):
         text = text.decode('utf-8')
     text = text.replace('\r\n', '\n').replace('\r', '\n') + ' \n'
-
     meshes = []
 
     def append_mesh():
@@ -69,7 +68,9 @@ def load_wavefront(file_obj, **kwargs):
                 loaded['vertex_normals'] = normals[vert_order]
 
             # handle vertex texture
-            if len(current['vt']) > 0:
+            # Here the library has a problem with partwise textured objects as then the texture coordinates count is not
+            # same count as  the vertices.
+            if len(current['vt']) > 0 and load_vertex_texture:
                 texture = np.array(current['vt'], dtype=np.float64)
                 # make sure vertex texture is the right shape
                 # AKA (len(vertices), dimension)
@@ -143,7 +144,6 @@ def load_wavefront(file_obj, **kwargs):
             # defining a new group
             group_idx += 1
             current['g'].append((group_idx, len(current['f']) // 3))
-
     if next_idx > 0:
         append_mesh()
 
